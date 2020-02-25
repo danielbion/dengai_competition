@@ -63,9 +63,9 @@ global_params = {
 }
 
 model_params = {
-    "iterations": 1000,
-    "learning_rate": 0.05,
-    "depth": 5
+    "iterations": 300,
+    "learning_rate": 0.01,
+    "depth": 7
 }
 
     
@@ -104,7 +104,7 @@ def get_metrics(model, train_pool, eval_pool):
     .transpose().rename(columns={0:'Train', 1:'Test'})
     return metrics
 
-def split_data_city(city, train_features, train_labels, features, remove_outliers):
+def split_data_city(city, train_features, train_labels, cat_features, features, remove_outliers):
     city_train_features = train_features[train_features.city == city].reset_index(drop = True).copy()
     city_train_labels = train_labels[train_labels.city == city].reset_index(drop = True).copy()
 
@@ -115,16 +115,16 @@ def split_data_city(city, train_features, train_labels, features, remove_outlier
         city_train_features = city_train_features[without_outliers]
         city_train_labels = city_train_labels[without_outliers]
         
-    splitted_data = train_test_split(city_train_features[features], city_train_labels.total_cases, test_size=0.2)
+    splitted_data = train_test_split(city_train_features[features], city_train_labels.total_cases, test_size=0.4, shuffle = False)
     train_data, eval_data, train_target, eval_target = splitted_data
 
-    train_pool = Pool(data = train_data, label = train_target)
-    eval_pool = Pool(data = eval_data, label = eval_target)
+    train_pool = Pool(data = train_data, label = train_target, cat_features = cat_features)
+    eval_pool = Pool(data = eval_data, label = eval_target, cat_features = cat_features)
     return (train_pool, eval_pool)
 
-def train_city(city, train_features, train_labels, features, grid_params, remove_outliers = False, grid_search = True):
+def train_city(city, train_features, train_labels, features, cat_features, grid_params, remove_outliers = False, grid_search = True):
     print(city)
-    train_pool, eval_pool = split_data_city(city, train_features, train_labels, features[city], remove_outliers)
+    train_pool, eval_pool = split_data_city(city, train_features, train_labels, cat_features, features[city], remove_outliers)
 
     model = train_catboost(train_pool, eval_pool, grid_search, grid_params[city])
     model.save_model(city)
@@ -136,7 +136,7 @@ def train_city(city, train_features, train_labels, features, grid_params, remove
     return model
 
 def train_model(train_features, train_labels):
-    splitted_data = train_test_split(train_features[global_features], train_labels.total_cases, test_size=0.2)
+    splitted_data = train_test_split(train_features[global_features], train_labels.total_cases, test_size=0.4, shuffle = False)
     train_data, eval_data, train_target, eval_target = splitted_data
 
     train_pool = Pool(data = train_data, label = train_target)
