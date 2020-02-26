@@ -64,8 +64,8 @@ global_params = {
 
 model_params = {
     "iterations": 300,
-    "learning_rate": 0.01,
-    "depth": 7
+    "learning_rate": 0.05,
+    "depth": 3
 }
 
     
@@ -89,7 +89,7 @@ def train_catboost(train_pool, eval_pool, grid_search, grid_params):
     else:
         model = CatBoostRegressor(iterations = model_params['iterations'],
                               learning_rate = model_params['learning_rate'],
-                              depth = model_params['depth'])
+                              depth = model_params['depth'], has_time = True)
     
     model.fit(train_pool, eval_set=eval_pool, verbose = 100)
     
